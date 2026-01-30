@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rullskidbanor</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --text:#e7ecff;
+      --muted:#a7b0d6;
+      --border:rgba(255,255,255,.12);
+      --accent:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(122,162,255,.22), transparent 55%),
+                  radial-gradient(900px 650px at 90% 0%, rgba(255,107,107,.10), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.4;
+    }
+    header{padding:28px 18px 10px; max-width:1100px; margin:0 auto;}
+    h1{margin:0 0 6px; font-size:clamp(22px, 3vw, 34px)}
+    .sub{color:var(--muted); margin:0 0 18px}
+    .wrap{max-width:1100px; margin:0 auto; padding:0 18px 28px}
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      gap:10px;
+      align-items:end;
+      background:rgba(18,26,51,.65);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      backdrop-filter: blur(10px);
+    }
+    .field label{display:block; font-size:12px; color:var(--muted); margin:0 0 6px}
+    input[type="search"], select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      outline:none;
+    }
+    input[type="search"]::placeholder{color:rgba(231,236,255,.55)}
+
+    .meta{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:12px 0 10px; color:var(--muted); font-size:13px;}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); background: rgba(255,255,255,.05); font-size:12px; color:var(--text); white-space:nowrap;}
+    .pill.off{background: rgba(255,107,107,.10); border-color: rgba(255,107,107,.35)}
+
+    .tablecard{background:rgba(18,26,51,.65); border:1px solid var(--border); border-radius:16px; overflow:hidden; backdrop-filter: blur(10px);}
+    table{width:100%; border-collapse:collapse}
+    thead th{
+      text-align:left;
+      font-size:12px;
+      letter-spacing:.02em;
+      color:var(--muted);
+      padding:12px 12px;
+      border-bottom:1px solid var(--border);
+      position:sticky;
+      top:0;
+      background:rgba(18,26,51,.92);
+      z-index:1;
+      user-select:none;
+    }
+    tbody td{padding:12px 12px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top;}
+    tbody tr.data-row:hover{background:rgba(255,255,255,.04)}
+    .sortable{cursor:pointer}
+    .sort-ind{opacity:.7; font-weight:700; margin-left:6px}
+
+    a.linklike{color:var(--accent); font-weight:700; text-decoration:none}
+    a.linklike:hover{text-decoration:underline}
+    .muted{color:var(--muted)}
+
+    /* Expanded panel row */
+    tr.panel-row td{
+      padding:0;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.02);
+    }
+    .panel{
+      padding:14px 12px 16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      animation: pop .12s ease-out;
+    }
+    @keyframes pop { from { transform: translateY(-4px); opacity:.6; } to { transform:none; opacity:1; } }
+    .card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.03);
+      padding:12px;
+    }
+    .card h3{margin:0 0 6px; font-size:13px; color:var(--muted); font-weight:700; letter-spacing:.02em}
+    .card p{margin:0; white-space:pre-wrap}
+    .mono{font-variant-numeric: tabular-nums}
+    .rowhint{cursor:pointer}
+
+    footer{max-width:1100px; margin:0 auto; padding:0 18px 28px; color:var(--muted); font-size:12px}
+    code{color:rgba(231,236,255,.85)}
+
+    @media (max-width: 920px){ .controls{grid-template-columns:1fr 1fr;} }
+    @media (max-width: 720px){ .panel{grid-template-columns:1fr;} }
+    @media (max-width: 520px){
+      thead{display:none}
+      table, tbody, tr, td{display:block; width:100%}
+      tbody tr.data-row{padding:10px 12px}
+      tbody td{border:none; padding:6px 0}
+      tbody td::before{content: attr(data-label); display:block; font-size:12px; color:var(--muted); margin-bottom:2px;}
+      tr.panel-row td{padding:0 12px 14px;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rullskidbanor</h1>
+    <p class="sub">Klicka på <b>ortnamnet</b> för att öppna Google Maps. Klicka på <b>raden</b> för att läsa mer (t.ex. kommentarer).</p>
+  </header>
+
+  <div class="wrap">
+    <section class="controls" aria-label="Filter och sortering">
+      <div class="field">
+        <label for="q">Sök (ort)</label>
+        <input id="q" type="search" placeholder="t.ex. Borås, Boden…" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label for="lighting">Belysning</label>
+        <select id="lighting">
+          <option value="all">Alla</option>
+          <option value="Ja">Ja</option>
+          <option value="Nej">Nej</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="minlen">Min längd (km)</label>
+        <select id="minlen">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+    </section>
+
+    <div class="meta" id="meta"></div>
+
+    <section class="tablecard" aria-label="Resultat">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" data-key="Ort">Ort <span class="sort-ind" id="si-ort"></span></th>
+            <th class="sortable" data-key="Längd (km)">Längd (km) <span class="sort-ind" id="si-len"></span></th>
+            <th class="sortable" data-key="Bredd (m)">Bredd (m) <span class="sort-ind" id="si-bred"></span></th>
+            <th class="sortable" data-key="Belysning">Belysning <span class="sort-ind" id="si-bel"></span></th>
+            <th class="sortable" data-key="Byggnations år">Byggnations år <span class="sort-ind" id="si-ar"></span></th>
+            <th class="sortable" data-key="Betyg x/10">Betyg <span class="sort-ind" id="si-bet"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <footer>
+    Den här sidan är <b>skrivskyddad</b>. För att visa <b>dina</b> kommentarer/egna Maps-länkar för andra:
+
+    exportera JSON från din redigerbara sida och lägg den som <code>rullskidbanor_public.json</code> bredvid denna HTML vid publicering.
+
+    (Om filen finns laddas den automatiskt.)
+  </footer>
+
+  <script>
+    // Inbäddad grunddata (från Excel).
+    const FALLBACK_DATA = [{"Ort": "Alvesta", "Längd (km)": 2.1, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "alvesta-1"}, {"Ort": "Bengtsfors", "Längd (km)": 2.0, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "bengtsfors-2"}, {"Ort": "Boden", "Längd (km)": 3.6, "Bredd (m)": 4.0, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "", "_id": "boden-3"}, {"Ort": "Borås", "Längd (km)": 1.1, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "borås-4"}, {"Ort": "Bruksvallarna", "Längd (km)": 10.0, "Bredd (m)": 3.7, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "bruksvallarna-5"}, {"Ort": "Dala-Järna", "Längd (km)": 5.4, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "dala-järna-6"}, {"Ort": "Falun", "Längd (km)": 4.3, "Bredd (m)": 4.0, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "falun-7"}, {"Ort": "Filipstad", "Längd (km)": 3.3, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": 2015, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "filipstad-8"}, {"Ort": "Gnosjö", "Längd (km)": 2.0, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "gnosjö-9"}, {"Ort": "Göteborg", "Längd (km)": 1.5, "Bredd (m)": 1.5, "Belysning": "Nej", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "göteborg-10"}, {"Ort": "Hedesunda", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "hedesunda-11"}, {"Ort": "Hudiksvall", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "hudiksvall-12"}, {"Ort": "Härnösand", "Längd (km)": 3.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "härnösand-13"}, {"Ort": "Häverödal", "Längd (km)": 3.0, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "häverödal-14"}, {"Ort": "Högbo", "Längd (km)": 3.1, "Bredd (m)": 3.1, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "högbo-15"}, {"Ort": "Idre fjäll", "Längd (km)": 3.3, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "idre-fjäll-16"}, {"Ort": "Junsele", "Längd (km)": 3.0, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "junsele-17"}, {"Ort": "Järpen", "Längd (km)": 2.0, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "järpen-18"}, {"Ort": "Kalix", "Längd (km)": 3.0, "Bredd (m)": 3.0, "Belysning": "Nej", "Byggnations år": 2022, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "kalix-19"}, {"Ort": "Kimstad", "Längd (km)": 0.5, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "kimstad-20"}, {"Ort": "Kiruna", "Längd (km)": 5.0, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": 8.25, "Info": "", "Maps": "", "_id": "kiruna-21"}, {"Ort": "Lima", "Längd (km)": 2.5, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "lima-22"}, {"Ort": "Luleå", "Längd (km)": 4.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "luleå-23"}, {"Ort": "Lycksele", "Längd (km)": 5.1, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.5, "Info": "", "Maps": "", "_id": "lycksele-24"}, {"Ort": "Mora", "Längd (km)": 2.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "mora-25"}, {"Ort": "Nässjö", "Längd (km)": 5.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "nässjö-26"}, {"Ort": "Orsa Grönklitt", "Längd (km)": 4.9, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "orsa-grönklitt-27"}, {"Ort": "Piteå", "Längd (km)": 2.9, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.25, "Info": "", "Maps": "", "_id": "piteå-28"}, {"Ort": "Sollefteå", "Längd (km)": 5.4, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "sollefteå-29"}, {"Ort": "Storuman", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "storuman-30"}, {"Ort": "Storvreta", "Längd (km)": 3.3, "Bredd (m)": 4.0, "Belysning": "Ja", "Byggnations år": "2021?", "Betyg x/10": null, "Info": "", "Maps": "", "_id": "storvreta-31"}, {"Ort": "Sundsvall", "Längd (km)": 5.8, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 8.0, "Info": "", "Maps": "", "_id": "sundsvall-32"}, {"Ort": "Sveg", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "sveg-33"}, {"Ort": "Sätra", "Längd (km)": 1.5, "Bredd (m)": 4.0, "Belysning": "Ja", "Byggnations år": 2018, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "sätra-34"}, {"Ort": "Timrå", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "", "_id": "timrå-35"}, {"Ort": "Torsby", "Längd (km)": 4.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "torsby-36"}, {"Ort": "Trollhättan", "Längd (km)": 2.5, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2025, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "trollhättan-37"}, {"Ort": "Töckfors", "Längd (km)": 2.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "töckfors-38"}, {"Ort": "Ulricehamn", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2024, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "ulricehamn-39"}, {"Ort": "Umeå", "Längd (km)": null, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "umeå-40"}, {"Ort": "Vålådalen", "Längd (km)": 5.0, "Bredd (m)": 4.0, "Belysning": "Ja", "Byggnations år": 2014, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "vålådalen-41"}, {"Ort": "Åsarna", "Längd (km)": 3.6, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.5, "Info": "", "Maps": "", "_id": "åsarna-42"}, {"Ort": "Ätran", "Längd (km)": 0.9, "Bredd (m)": 3.0, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "ätran-43"}, {"Ort": "Örnsköldsvik", "Längd (km)": 7.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9.0, "Info": "", "Maps": "", "_id": "örnsköldsvik-44"}, {"Ort": "Östersund", "Längd (km)": 8.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9.75, "Info": "", "Maps": "", "_id": "östersund-45"}, {"Ort": "Överkalix", "Längd (km)": 5.0, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "", "_id": "överkalix-46"}, {"Ort": "Gällivare", "Längd (km)": 3.4, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": "2025?", "Betyg x/10": null, "Info": "", "Maps": "", "_id": "gällivare-47"}];
+
+    let DATA = [];
+
+    // Om rullskidbanor_public.json finns i samma mapp (på en webbserver),
+    // laddas den och ersätter FALLBACK_DATA. Viewers kan inte spara/ändra något här.
+    async function tryLoadPublicJson(){
+      try {
+        const res = await fetch("rullskidbanor_public.json", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (Array.isArray(json) && json.length) DATA = normalize(json);
+      } catch {}
+    }
+
+    const $ = (sel) => document.querySelector(sel);
+    const tbody = $("#tbody");
+    const meta = $("#meta");
+
+    const state = { q:"", lighting:"all", minLen:0, sortKey:"Ort", sortDir:"asc" };
+    let expandedId = null;
+
+    function normalize(list){
+      return (list || []).map((r, i) => ({
+        _id: r._id || (String(r.Ort || r["Ort"] || "rad").toLowerCase().replace(/[^a-z0-9åäö]+/gi,'-').replace(/^-|-$/g,'') || "rad") + "-" + (i+1),
+        Ort: r.Ort ?? r["Ort"] ?? "",
+        "Längd (km)": r["Längd (km)"] ?? null,
+        "Bredd (m)": r["Bredd (m)"] ?? null,
+        "Belysning": r["Belysning"] ?? "Ja",
+        "Byggnations år": r["Byggnations år"] ?? null,
+        "Betyg x/10": r["Betyg x/10"] ?? null,
+        "Info": r["Info"] ?? "",
+        "Maps": r["Maps"] ?? "",
+      }));
+    }
+
+    const num = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+    const fmt = (v, digits=1) => (v === null || v === undefined || Number.isNaN(v) ? "–" : Number(v).toFixed(digits));
+
+    // Sortering: saknade värden ALWAYS sist (även vid desc)
+    function compare(a,b,dir){
+      const m = dir === "asc" ? 1 : -1;
+      const isMissing = (v) => v === null || v === undefined || v === "" || (typeof v === "number" && Number.isNaN(v));
+      const am = isMissing(a);
+      const bm = isMissing(b);
+      if (am && bm) return 0;
+      if (am) return 1;
+      if (bm) return -1;
+      if (typeof a === "string" || typeof b === "string") return m * String(a).localeCompare(String(b), "sv");
+      return m * (Number(a) - Number(b));
+    }
+
+    function filteredRows(){
+      const q = state.q.trim().toLowerCase();
+      return DATA.filter(r => {
+        const ort = String(r.Ort ?? "").toLowerCase();
+        const okQ = q ? ort.includes(q) : true;
+        const okBel = state.lighting === "all" ? true : (r["Belysning"] === state.lighting);
+        const len = num(r["Längd (km)"]);
+        const okLen = len == null ? false : len >= state.minLen;
+        return okQ && okBel && okLen;
+      });
+    }
+
+    function sortedRows(rows){
+      const k = state.sortKey;
+      const dir = state.sortDir;
+      return [...rows].sort((ra, rb) => {
+        const a = (k === "Ort") ? ra.Ort : ra[k];
+        const b = (k === "Ort") ? rb.Ort : rb[k];
+        return compare(a, b, dir);
+      });
+    }
+
+    function setSortIndicators(){
+      const ids = {
+        "Ort":"#si-ort", "Längd (km)":"#si-len", "Bredd (m)":"#si-bred",
+        "Belysning":"#si-bel", "Byggnations år":"#si-ar", "Betyg x/10":"#si-bet"
+      };
+      for (const key in ids){
+        const el = $(ids[key]);
+        if (!el) continue;
+        if (key !== state.sortKey) { el.textContent = ""; continue; }
+        el.textContent = state.sortDir === "asc" ? "▲" : "▼";
+      }
+    }
+
+    function mapsHref(r){
+      const custom = (r["Maps"] || "").trim();
+      if (custom) return custom;
+      return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.Ort || "");
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function panelHtml(r){
+      const bel = r["Belysning"] ?? "–";
+      const maps = mapsHref(r);
+      const info = (r["Info"] || "").trim();
+      const infoHtml = info ? escapeHtml(info) : '<span class="muted">Inga kommentarer.</span>';
+      return `
+        <div class="panel">
+          <div class="card">
+            <h3>Kommentarer</h3>
+            <p>${infoHtml}</p>
+          </div>
+          <div class="card">
+            <h3>Detaljer</h3>
+            <p class="mono">
+              Längd: <b>${fmt(r["Längd (km)"],1)}</b> km<br/>
+              Bredd: <b>${fmt(r["Bredd (m)"],1)}</b> m<br/>
+              Belysning: <b>${escapeHtml(String(bel))}</b><br/>
+              Byggnations år: <b>${r["Byggnations år"] ?? "–"}</b><br/>
+              Betyg: <b>${r["Betyg x/10"] == null ? "–" : fmt(r["Betyg x/10"],2)}</b><br/>
+              Maps: <a class="linklike" href="${maps}" target="_blank" rel="noopener noreferrer">öppna</a>
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    function render(){
+      const rows = sortedRows(filteredRows());
+
+      const betyg = rows.map(r => num(r["Betyg x/10"])).filter(v => v != null);
+      const avg = betyg.length ? (betyg.reduce((a,b)=>a+b,0)/betyg.length) : null;
+
+      meta.innerHTML = [
+        `<span class="pill">Visar <b>${rows.length}</b> av ${DATA.length}</span>`,
+        `<span class="pill">Sortering: <b>${state.sortKey}</b> (${state.sortDir})</span>`,
+        `<span class="pill">Snittbetyg (synliga): <b>${avg==null?"–":avg.toFixed(2)}</b></span>`,
+      ].join(" ");
+
+      const out = [];
+      for (const r of rows){
+        const bel = r["Belysning"] ?? "–";
+        const belPill = bel === "Ja" ? `<span class="pill">Ja</span>` : `<span class="pill off">Nej</span>`;
+        out.push(`
+          <tr class="data-row rowhint" data-row="${r._id}">
+            <td data-label="Ort">
+              <a class="linklike" href="${mapsHref(r)}" target="_blank" rel="noopener noreferrer" data-maps="${r._id}">${r.Ort || "(namnlös)"}</a>
+            </td>
+            <td data-label="Längd (km)">${fmt(r["Längd (km)"], 1)}</td>
+            <td data-label="Bredd (m)">${fmt(r["Bredd (m)"], 1)}</td>
+            <td data-label="Belysning">${bel==="–" ? `<span class="muted">–</span>` : belPill}</td>
+            <td data-label="Byggnations år">${r["Byggnations år"] ?? "–"}</td>
+            <td data-label="Betyg">${r["Betyg x/10"] == null ? "–" : fmt(r["Betyg x/10"], 2)}</td>
+          </tr>
+        `);
+
+        if (expandedId === r._id){
+          out.push(`
+            <tr class="panel-row" data-panel="${r._id}">
+              <td colspan="6">${panelHtml(r)}</td>
+            </tr>
+          `);
+        }
+      }
+      tbody.innerHTML = out.join("");
+
+      tbody.querySelectorAll("a[data-maps]").forEach(a => a.addEventListener("click", (e) => e.stopPropagation()));
+      tbody.querySelectorAll("tr.data-row").forEach(tr => {
+        tr.addEventListener("click", () => {
+          const id = tr.getAttribute("data-row");
+          expandedId = (expandedId === id) ? null : id;
+          render();
+        });
+      });
+
+      setSortIndicators();
+    }
+
+    // Events
+    $("#q").addEventListener("input", (e)=>{ state.q = e.target.value; expandedId=null; render(); });
+    $("#lighting").addEventListener("change", (e)=>{ state.lighting = e.target.value; expandedId=null; render(); });
+    $("#minlen").addEventListener("change", (e)=>{ state.minLen = Number(e.target.value); expandedId=null; render(); });
+
+    document.querySelectorAll("th.sortable").forEach(th=>{
+      th.addEventListener("click", ()=>{
+        const key = th.getAttribute("data-key");
+        if (!key) return;
+        if (state.sortKey === key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        else { state.sortKey = key; state.sortDir = "asc"; }
+        expandedId=null;
+        render();
+      });
+    });
+
+    // Init
+    (async ()=>{
+      DATA = normalize(FALLBACK_DATA);
+      await tryLoadPublicJson();
+      render();
+    })();
+  </script>
+</body>
+</html>
