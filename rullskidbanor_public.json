@@ -2,10 +2,10 @@
   {
     "_id": "ny-19c1db8370a",
     "Ort": "Skellefteå",
-    "Längd (km)": null,
+    "Längd (km)": 5.7,
     "Bredd (m)": null,
-    "Belysning": "Ja",
-    "Byggnations år": null,
+    "Belysning": "Nej",
+    "Byggnations år": 2025,
     "Betyg x/10": null,
     "Info": "",
     "Maps": ""
@@ -442,7 +442,7 @@
   {
     "_id": "umeå-40",
     "Ort": "Umeå",
-    "Längd (km)": null,
+    "Längd (km)": 4,
     "Bredd (m)": null,
     "Belysning": "Ja",
     "Byggnations år": 2019,
