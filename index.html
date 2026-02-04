@@ -3,416 +3,318 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rullskidbanor – Kartvy</title>
-
-  <!-- Leaflet (ingen API-nyckel behövs) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+  <title>Rullskidbanor i Sverige – karta</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root{
-      --bg:#0b1020;
-      --card:#121a33;
-      --text:#e7ecff;
-      --muted:#a7b0d6;
-      --border:rgba(255,255,255,.12);
-      --accent:#7aa2ff;
+      --bg:#0b1020; --text:#e7ecff; --muted:#a7b0d6; --border:rgba(255,255,255,.12);
+      --ok:#2ecc71; --warn:#f1c40f; --bad:#e74c3c; --na:#9aa4c9; --accent:#7aa2ff;
     }
     *{box-sizing:border-box}
+    html,body{height:100%; margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;}
     body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: var(--bg);
-      color:var(--text);
-      line-height:1.4;
-    }
-    header{
-      padding:18px 16px 12px;
       background: radial-gradient(1200px 800px at 20% 10%, rgba(122,162,255,.22), transparent 55%),
                   radial-gradient(900px 650px at 90% 0%, rgba(255,107,107,.10), transparent 50%),
                   var(--bg);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    .topbar{
-      max-width: 1200px;
-      margin: 0 auto;
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    h1{margin:0; font-size: clamp(20px, 2.6vw, 30px)}
-    .sub{margin:6px 0 0; color: var(--muted); font-size: 13px}
-    .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .btn{
-      display:inline-block;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(122,162,255,.14);
-      color: var(--text);
-      text-decoration:none;
-      font-weight:700;
-      cursor:pointer;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .btn.secondary{background: rgba(255,255,255,.06)}
-    .btn:hover{filter:brightness(1.08)}
-
-    .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 12px 16px 16px;
-      display:grid;
-      grid-template-columns: 1fr 360px;
-      gap: 12px;
-    }
-    #map{
-      height: calc(100vh - 128px);
-      min-height: 420px;
-      border-radius: 16px;
-      border:1px solid var(--border);
-      overflow:hidden;
-      background: rgba(255,255,255,.04);
-    }
-    .panel{
-      height: calc(100vh - 128px);
-      min-height: 420px;
-      border-radius: 16px;
-      border:1px solid var(--border);
-      background: rgba(18,26,51,.65);
-      backdrop-filter: blur(10px);
-      padding: 12px;
-      overflow:auto;
-    }
-    .meta{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:10px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.05);
-      font-size:12px;
       color:var(--text);
-      white-space:nowrap;
     }
-    .search{
-      display:flex;
-      gap:10px;
-      margin: 10px 0 12px;
-    }
-    input[type="search"]{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
+    header{max-width:1100px; margin:0 auto; padding:18px 16px 10px;}
+    h1{margin:0 0 6px; font-size:clamp(20px, 2.6vw, 30px);}
+    .sub{margin:0; color:var(--muted);}
+    .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px;}
+    .chip, .btn, select, input[type="search"]{
       border:1px solid var(--border);
-      background: rgba(255,255,255,.04);
+      background: rgba(255,255,255,.06);
       color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
       outline:none;
     }
     input[type="search"]::placeholder{color:rgba(231,236,255,.55)}
-
-    .card{
-      border:1px solid var(--border);
-      border-radius:14px;
-      background: rgba(255,255,255,.03);
-      padding:12px;
-      margin-bottom:12px;
+    .btn{cursor:pointer; font-weight:800;}
+    .btn:hover{filter:brightness(1.08);}
+    .btn.primary{background: rgba(122,162,255,.16);}
+    .btn.secondary{background: rgba(255,255,255,.06);}
+    .btn:disabled{opacity:.6; cursor:not-allowed;}
+    .meta{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; color:var(--muted); font-size:13px;}
+    .pill{display:inline-flex; gap:6px; align-items:center; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background: rgba(255,255,255,.05); color:var(--text);}
+    .layout{max-width:1100px; margin:0 auto; padding:0 16px 16px; position:relative;}
+    #map{height: calc(100vh - 220px); min-height: 440px; border-radius:16px; overflow:hidden; border:1px solid var(--border); background: rgba(18,26,51,.65);}
+    .legend{position:absolute; left:16px; bottom:16px; z-index:500; background: rgba(18,26,51,.90);
+      border:1px solid var(--border); border-radius:14px; padding:10px 12px; font-size:12px; color:var(--text); backdrop-filter: blur(10px);
     }
-    .card h2{margin:0 0 6px; font-size:18px}
-    .card h3{margin:0 0 6px; font-size:13px; color:var(--muted); font-weight:700; letter-spacing:.02em}
-    .muted{color:var(--muted)}
-    .mono{font-variant-numeric: tabular-nums}
-    .rowbtns{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-
-    @media (max-width: 980px){
-      .wrap{grid-template-columns:1fr;}
-      #map{height: calc(100vh - 160px);}
-      .panel{height:auto; min-height:unset}
-    }
-
-    .leaflet-control-attribution, .leaflet-control-zoom a {
-      background: rgba(18,26,51,.7) !important;
-      color: var(--text) !important;
-      border: 1px solid var(--border) !important;
-      backdrop-filter: blur(8px);
-    }
-    .leaflet-control-attribution a{color: var(--accent) !important}
+    .lg-row{display:flex; align-items:center; gap:8px; margin:6px 0;}
+    .dot{width:10px; height:10px; border-radius:999px; display:inline-block; border:1px solid rgba(255,255,255,.25);}
+    .dot.ok{background:var(--ok);} .dot.warn{background:var(--warn);} .dot.bad{background:var(--bad);} .dot.na{background:var(--na);}
+    .small{font-size:12px; color:var(--muted);}
+    .notice{margin-top:10px; color:var(--muted); font-size:12px;}
+    @media (max-width: 700px){ #map{height: calc(100vh - 270px);} }
   </style>
 </head>
 <body>
   <header>
-    <div class="topbar">
-      <div>
-        <h1>Rullskidbanor – karta</h1>
-        <div class="sub">Klicka på en punkt för detaljer. Du kan alltid öppna samma bana i listan.</div>
-      </div>
-      <div class="actions">
-        <a class="btn secondary" href="list.html">Öppna i listvy</a>
-        <a class="btn" id="openMapsAll" href="#" target="_blank" rel="noopener noreferrer" title="Öppnar Google Maps med sökning">Öppna Google Maps</a>
-      </div>
+    <h1>Rullskidbanor i Sverige</h1>
+    <p class="sub">Klicka på en markör för detaljer och kommentarer. Färgen visar betyg. Klicka “Öppna i listvy” för tabellen.</p>
+
+    <div class="bar">
+      <input id="q" type="search" placeholder="Sök ort…" />
+      <label class="chip">Betyg ≥
+        <select id="minRating">
+          <option value="0">Alla</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+      </label>
+      <label class="chip"><input id="onlyLit" type="checkbox" style="margin-right:8px;" />Endast belysta</label>
+      <button id="nearMe" class="btn primary" type="button">📍 Visa banor nära mig</button>
+      <a href="list.html" style="text-decoration:none;"><button class="btn secondary" type="button">Öppna i listvy</button></a>
+    </div>
+
+    <div class="meta" id="meta"></div>
+    <div class="notice">
+      Senast uppdaterad: <b>2026-02-03</b> • Dela en bana: öppna en markör → URL får automatiskt <code>#id</code>.
     </div>
   </header>
 
-  <div class="wrap">
-    <div id="map" aria-label="Karta"></div>
-
-    <aside class="panel" aria-label="Detaljer">
-      <div class="meta" id="meta"></div>
-
-      <div class="search">
-        <input id="q" type="search" placeholder="Sök ort (t.ex. Borås, Boden…)" autocomplete="off" />
-      </div>
-
-      <div class="card" id="details">
-        <h2>Välj en bana</h2>
-        <p class="muted">Klicka på en punkt på kartan för att se kommentarer och detaljer.</p>
-      </div>
-
-      <div class="card">
-        <h3>Tips</h3>
-        <p class="muted" style="margin:0">
-          Om en punkt saknar exakt position används ortens centrum som ungefärlig plats.
-        </p>
-      </div>
-    </aside>
+  <div class="layout">
+    <div id="map"></div>
+    <div class="legend" aria-label="Legend">
+      <div style="font-weight:900; margin-bottom:6px;">Betygsfärg</div>
+      <div class="lg-row"><span class="dot ok"></span> 8–10</div>
+      <div class="lg-row"><span class="dot warn"></span> 6–7,9</div>
+      <div class="lg-row"><span class="dot bad"></span> &lt; 6</div>
+      <div class="lg-row"><span class="dot na"></span> inget betyg</div>
+      <div class="small" style="margin-top:8px;">Om en bana saknar koordinater används ortens position (OpenStreetMap).</div>
+    </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const FALLBACK_DATA = [{"_id": "ny-19c1db8370a", "Ort": "Skellefteå", "Längd (km)": null, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": ""}, {"_id": "alvesta-1", "Ort": "Alvesta", "Längd (km)": 2.1, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Hanasl%C3%B6v/@56.931297,14.593399,307m/data=!3m1!1e3!4m6!3m5!1s0x46572e540f2f7235:0x22c8127dad23ba45!8m2!3d56.931896!4d14.595629!16s%2Fg%2F11dylsgfq?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "bengtsfors-2", "Ort": "Bengtsfors", "Längd (km)": 2, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/L%C3%A5ngevi+Idrottsplats/@59.0221542,12.2082648,899m/data=!3m1!1e3!4m6!3m5!1s0x46448f9668b1ab0b:0x32c13bf5d71ffd41!8m2!3d59.0218398!4d12.2168432!16s%2Fg%2F11jwb85gy2?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "boden-3", "Ort": "Boden", "Längd (km)": 3.6, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "https://www.google.com/maps/place/Pagla+Skidstadion/@65.8404811,21.6222167,587m/data=!3m1!1e3!4m6!3m5!1s0x467f58131726d893:0xa961d57f8285944d!8m2!3d65.8404005!4d21.627617!16s%2Fg%2F12q4rt01_?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "borås-4", "Ort": "Borås", "Längd (km)": 1.1, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Bor%C3%A5s+GIF+Knekt%C3%A5s/@57.7780515,13.004743,385m/data=!3m1!1e3!4m6!3m5!1s0x465aa16954488411:0x6539b69148bcdc8b!8m2!3d57.7781857!4d13.0067331!16s%2Fg%2F11bz0199yh?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "bruksvallarna-5", "Ort": "Bruksvallarna", "Längd (km)": 10, "Bredd (m)": 3.7, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Cafe'+Fj%C3%A4llk%C3%A5tan+Bruksvallarna/@62.6435153,12.4175815,307m/data=!3m1!1e3!4m6!3m5!1s0x466c1f65fadab037:0x5bc18adff7e4a8fc!8m2!3d62.6421853!4d12.4195053!16s%2Fg%2F11b5qwc_qd?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "dala-järna-6", "Ort": "Dala-Järna", "Längd (km)": 5.4, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=60.534294,14.449147&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=11749662802746755836"}, {"_id": "falun-7", "Ort": "Falun", "Längd (km)": 4.3, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Lugnet+asfaltbana/@60.6197196,15.6536088,327m/data=!3m1!1e3!4m6!3m5!1s0x466771885645deed:0x74228697c34e0c7d!8m2!3d60.6197924!4d15.6561023!16s%2Fg%2F11k5x2c_hg?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "filipstad-8", "Ort": "Filipstad", "Längd (km)": 3.3, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2015, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kalhyttan+Sport+%26+Fritidsarena/@59.703481,14.13299,720m/data=!3m1!1e3!4m6!3m5!1s0x465cddf299b0bf8b:0x8dcc53fb55cc5a54!8m2!3d59.7034806!4d14.1329898!16s%2Fg%2F11fflyb48l?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "gnosjö-9", "Ort": "Gnosjö", "Längd (km)": 2, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/T%C3%B6llstorpshallen/@57.36075,13.753169,770m/data=!3m1!1e3!4m6!3m5!1s0x46508e1db72c1bf9:0xae62aff242b5ef16!8m2!3d57.3607503!4d13.7531685!16s%2Fg%2F1v2pnts1?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "göteborg-10", "Ort": "Göteborg", "Längd (km)": 1.5, "Bredd (m)": 1.5, "Belysning": "Nej", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Skat%C3%A5s+motionscentrum/@57.7037482,12.0352275,361m/data=!3m1!1e3!4m6!3m5!1s0x464ff3f500000001:0xbc6c5ef678969dcc!8m2!3d57.7038122!4d12.0356398!16s%2Fg%2F11dyj9_8m?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "hedesunda-11", "Ort": "Hedesunda", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "Underhålls ej", "Maps": "https://www.google.com/maps/place/Elljussp%C3%A5ret+hedesunda/@60.4123696,16.9812719,1258m/data=!3m1!1e3!4m6!3m5!1s0x4660a581250bd3e5:0x7bba1d6d432e6a9b!8m2!3d60.4133741!4d16.9885381!16s%2Fg%2F11k7n04386?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "hudiksvall-12", "Ort": "Hudiksvall", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Hudiksvall+Skidstadion/@61.7269798,17.1506734,558m/data=!3m1!1e3!4m6!3m5!1s0x4666a7df9eb79ae7:0xa4abfccabacf7048!8m2!3d61.7271162!4d17.1505393!16s%2Fg%2F11bxdw5xz9?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "härnösand-13", "Ort": "Härnösand", "Längd (km)": 3, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Bondsj%C3%B6h%C3%B6jdens+IP/@62.642827,17.899053,1311m/data=!3m1!1e3!4m6!3m5!1s0x46649bc757f1dbd5:0xa6e4832f5db9c1c2!8m2!3d62.6428267!4d17.8990531!16s%2Fg%2F11ghsb80f2?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "häverödal-14", "Ort": "Häverödal", "Längd (km)": 3, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=60.022969,18.602933&z=15&t=h&hl=en&gl=SE&mapclient=embed&cid=1200415211204436964"}, {"_id": "högbo-15", "Ort": "Högbo", "Längd (km)": 3.1, "Bredd (m)": 3.1, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Sportcentralen/@60.669201,16.819498,349m/data=!3m1!1e3!4m6!3m5!1s0x4660ca5f83d7d797:0xd0184eb4db15317e!8m2!3d60.6692014!4d16.8194982!16s%2Fg%2F11g8nzvb2v?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "idre-fjäll-16", "Ort": "Idre fjäll", "Längd (km)": 3.3, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/797+71+Idre/@61.883573,12.833847,336m/data=!3m1!1e3!4m6!3m5!1s0x4669159e18c7cba7:0xb285411ec00c10e2!8m2!3d61.8579343!4d12.7258736!16s%2Fm%2F04gnvcs?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "junsele-17", "Ort": "Junsele", "Längd (km)": 3, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/883+71+Junsele/@63.702114,16.853988,632m/data=!3m1!1e3!4m6!3m5!1s0x467a8e026138ae25:0x732ee468dede63af!8m2!3d63.6958941!4d16.8788147!16zL20vMDl3d2N5?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "järpen-18", "Ort": "Järpen", "Längd (km)": 2, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Ishall,+F%C3%B6reningen+R%C3%B6jsmohallen/@63.347158,13.471948,640m/data=!3m1!1e3!4m6!3m5!1s0x466e14a1fd69fc13:0x24b797611b203db4!8m2!3d63.3471578!4d13.4719479!16s%2Fg%2F1hc1nd938?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kalix-19", "Ort": "Kalix", "Längd (km)": 3, "Bredd (m)": 3, "Belysning": "Nej", "Byggnations år": 2022, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kalix+Skidklubb/@65.874308,23.132156,2333m/data=!3m1!1e3!4m6!3m5!1s0x45d5772618201733:0xfa8f86df8188fe1e!8m2!3d65.8743084!4d23.1321561!16s%2Fg%2F11j2y_4mw_?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kimstad-20", "Ort": "Kimstad", "Längd (km)": 0.5, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kimstad+Skidcenter/@58.558224,15.955839,744m/data=!3m1!1e3!4m6!3m5!1s0x465941a47a06d8fd:0xd104f7a758ff71ee!8m2!3d58.5582241!4d15.9558389!16s%2Fg%2F11gxrx5lwq?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kiruna-21", "Ort": "Kiruna", "Längd (km)": 5, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": 8.25, "Info": "", "Maps": "https://www.google.com/maps/place/Matoj%C3%A4rvi+Idrottsplats/@67.863349,20.231621,538m/data=!3m1!1e3!4m6!3m5!1s0x45d0ba7ca4e96647:0xe1be2c614bf91ca9!8m2!3d67.8633492!4d20.2316211!16s%2Fg%2F11cp7q8_l6?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "lima-22", "Ort": "Lima", "Längd (km)": 2.5, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Lima+Skidskyttestadion/@60.85144,13.403323,695m/data=!3m1!1e3!4m6!3m5!1s0x46683cb1619bc911:0x6574666c4f91091!8m2!3d60.8514395!4d13.4033233!16s%2Fg%2F11f3rbd481?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "luleå-23", "Ort": "Luleå", "Längd (km)": 4.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "google.com/maps?ll=65.604864,22.193592&z=15&t=m&hl=sv&gl=SE&mapclient=embed&cid=5703088829470176889"}, {"_id": "lycksele-24", "Ort": "Lycksele", "Längd (km)": 5.1, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.5, "Info": "", "Maps": "https://maps.google.com/maps?ll=64.594515,18.659429&z=14&t=h&hl=en&gl=SE&mapclient=embed&cid=3720030747532891037"}, {"_id": "mora-25", "Ort": "Mora", "Längd (km)": 2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://maps.google.com/maps?ll=61.00749,14.500453&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=17618855886652411612"}, {"_id": "nässjö-26", "Ort": "Nässjö", "Längd (km)": 5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/L%C3%B6vhults+Camping/@57.6548755,14.7590871,484m/data=!3m1!1e3!4m9!3m8!1s0x465a02f308835601:0x94b695719f38a40e!5m2!4m1!1i2!8m2!3d57.6544059!4d14.7587885!16s%2Fg%2F11f0kxvmtf?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "orsa-grönklitt-27", "Ort": "Orsa Grönklitt", "Längd (km)": 4.9, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Orsa+Gr%C3%B6nklitt+Ski+Stadium/@61.211319,14.53424,687m/data=!3m1!1e3!4m6!3m5!1s0x4667d41873e3439b:0xf89dffdbce67ee59!8m2!3d61.2113186!4d14.5342401!16s%2Fg%2F11g6nyh2z9?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "piteå-28", "Ort": "Piteå", "Längd (km)": 2.9, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.25, "Info": "", "Maps": "https://www.google.com/maps/place/Lindb%C3%A4cksstadion/@65.3169546,21.2859082,466m/data=!3m1!1e3!4m6!3m5!1s0x467f3cb6d1fa72a9:0x784eddbdf507b17f!8m2!3d65.3157979!4d21.2870227!16s%2Fg%2F1hc6wgcls?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sollefteå-29", "Ort": "Sollefteå", "Längd (km)": 5.4, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Sollefte%C3%A5s+skidstadion/@63.1585307,17.2371458,471m/data=!3m1!1e3!4m6!3m5!1s0x4664d7c6d93f7b4f:0x8683ebdd739504c5!8m2!3d63.1585888!4d17.2381346!16s%2Fg%2F11fn069dg2?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "storuman-30", "Ort": "Storuman", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/923+41+Stensele/@65.0690619,17.1141909,301m/data=!3m2!1e3!4b1!4m6!3m5!1s0x4679e2ab5681f6f7:0x35ca9fe7b93297cb!8m2!3d65.0690619!4d17.1167658!16s%2Fg%2F11g62cytjh?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "storvreta-31", "Ort": "Storvreta", "Längd (km)": 3.3, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/923+41+Stensele/@65.0690619,17.1141909,301m/data=!3m2!1e3!4b1!4m6!3m5!1s0x4679e2ab5681f6f7:0x35ca9fe7b93297cb!8m2!3d65.0690619!4d17.1167658!16s%2Fg%2F11g62cytjh?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sundsvall-32", "Ort": "Sundsvall", "Längd (km)": 5.8, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 8, "Info": "", "Maps": "https://www.google.com/maps/place/S%C3%B6dra+Berget/@62.3670865,17.3108668,319m/data=!3m1!1e3!4m6!3m5!1s0x466467998dc14e01:0x682939bfa2b7bf9c!8m2!3d62.36658!4d17.3092687!16s%2Fg%2F11ngtbznzr?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sveg-33", "Ort": "Sveg", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=62.017858,14.358006&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=4373767897990633337"}, {"_id": "sätra-34", "Ort": "Sätra", "Längd (km)": 1.5, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2018, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/S%C3%A4tra+IF+Skidstadion/@59.842604,16.4939352,336m/data=!3m1!1e3!4m6!3m5!1s0x465e6d22ab1a9ab3:0xdcce88397624bb37!8m2!3d59.8430922!4d16.4956173!16s%2Fg%2F11k6k08lqg?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "timrå-35", "Ort": "Timrå", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "https://www.google.com/maps?ll=62.461661,17.292588&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=16564950659784006360"}, {"_id": "torsby-36", "Ort": "Torsby", "Längd (km)": 4, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Torsby+Skidtunnel+%26+Sportcenter/@60.148136,12.993534,1420m/data=!3m1!1e3!4m6!3m5!1s0x4642e8b359284dad:0x202622d48293fb35!8m2!3d60.148136!4d12.9935344!16s%2Fg%2F1hg4rfst5?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "trollhättan-37", "Ort": "Trollhättan", "Längd (km)": 2.5, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2025, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Trollh%C3%A4ttans+Skid+%26+Orienteringsklubb/@58.2855794,12.254328,4127m/data=!3m1!1e3!4m6!3m5!1s0x46453d023e567637:0x63c5c5b5d2663d70!8m2!3d58.292858!4d12.2705125!16s%2Fg%2F1hc0zkdl_?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "töckfors-38", "Ort": "Töckfors", "Längd (km)": 2.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kj%C3%B8len+Sportcenter/@59.4839532,11.7487582,143m/data=!3m1!1e3!4m6!3m5!1s0x46438e0f74c13d07:0xa02a3bf39a3d5651!8m2!3d59.4848627!4d11.7473805!16s%2Fg%2F11gf5nt1rx?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "ulricehamn-39", "Ort": "Ulricehamn", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2024, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Skidstadion+Lassalyckan+Ulricehamn/@57.7869623,13.4201689,2099m/data=!3m1!1e3!4m14!1m7!3m6!1s0x465a84dd2f1459cd:0x5cf948190e1e1e84!2sLassalyckan+Ulricehamn!8m2!3d57.7865455!4d13.4384604!16s%2Fg%2F11gc5ymtgh!3m5!1s0x465a84e807f77da7:0x8e6f58720624afa5!8m2!3d57.7851353!4d13.4371157!16s%2Fg%2F11b6mtcxdz?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "umeå-40", "Ort": "Umeå", "Längd (km)": null, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": ""}, {"_id": "vålådalen-41", "Ort": "Vålådalen", "Längd (km)": 5, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2014, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/V%C3%A5l%C3%A5dalens+Fj%C3%A4llstation/@63.1486866,12.9637089,339m/data=!3m1!1e3!4m9!3m8!1s0x466e799182004977:0x47db808815a7f8b6!5m2!4m1!1i2!8m2!3d63.1486865!4d12.9664149!16s%2Fg%2F1tql3dgx?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "åsarna-42", "Ort": "Åsarna", "Längd (km)": 3.6, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.5, "Info": "", "Maps": "https://www.google.com/maps/place/%C3%85sarna+Ik/@62.6465519,14.3605872,631m/data=!3m1!1e3!4m17!1m10!3m9!1s0x466f11cf76233e8f:0xc3b8d2d300b77afd!2s%C3%85sarna+Skicenter!5m2!4m1!1i2!8m2!3d62.6403746!4d14.3706064!16s%2Fg%2F11cltw8wcg!3m5!1s0x466f11d2326d4b8b:0x22bc61e332c9f930!8m2!3d62.6469121!4d14.3641012!16s%2Fg%2F1hc4d396g?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "ätran-43", "Ort": "Ätran", "Längd (km)": 0.9, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/%C3%84trans+Idrottsplats/@57.1208903,12.9616863,239m/data=!3m1!1e3!4m6!3m5!1s0x46504f6aa024981f:0xfdd76b8122d93819!8m2!3d57.1210426!4d12.9607954!16s%2Fg%2F11gjhp22p1?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "örnsköldsvik-44", "Ort": "Örnsköldsvik", "Längd (km)": 7, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9, "Info": "", "Maps": "https://www.google.com/maps/place/Skyttis/@63.2952898,18.7320562,331m/data=!3m1!1e3!4m6!3m5!1s0x467b581d575606ed:0x4a4f71874a4e8a9!8m2!3d63.2952899!4d18.7347105!16s%2Fg%2F11dyk05bf?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "östersund-45", "Ort": "Östersund", "Längd (km)": 8, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9.75, "Info": "", "Maps": "https://www.google.com/maps?ll=63.190407,14.659041&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=8499329848599437561"}, {"_id": "överkalix-46", "Ort": "Överkalix", "Längd (km)": 5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Storlappberget+%C3%96verkalix/@66.315708,22.78034,1146m/data=!3m1!1e3!4m6!3m5!1s0x45d5b10f9eb29a7d:0xa5242ebc647f1117!8m2!3d66.3157077!4d22.7803399!16s%2Fg%2F11llt8zn1s?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "gällivare-47", "Ort": "Gällivare", "Längd (km)": 3.4, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Tallbacka+IP+(konstgr%C3%A4splan)/@67.160126,20.6384119,258m/data=!3m1!1e3!4m6!3m5!1s0x45d71fe1c114cda7:0xfa334a4c3e5e2e78!8m2!3d67.1590516!4d20.6413084!16s%2Fg%2F11pbbmws86?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}];
-
-    let DATA = [];
-    let MAP;
-    let markersLayer;
-    let markerById = new Map();
+    const DATA_URL = "rullskidbanor_public.json";
+    const BUILD_DATE = "2026-02-03";
+    const GEO_CACHE_KEY = "rullskidbanor:geocache:v1";
+    const FALLBACK = [{"_id": "ny-19c1db8370a", "Ort": "Skellefteå", "Längd (km)": null, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": ""}, {"_id": "alvesta-1", "Ort": "Alvesta", "Längd (km)": 2.1, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Hanasl%C3%B6v/@56.931297,14.593399,307m/data=!3m1!1e3!4m6!3m5!1s0x46572e540f2f7235:0x22c8127dad23ba45!8m2!3d56.931896!4d14.595629!16s%2Fg%2F11dylsgfq?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "bengtsfors-2", "Ort": "Bengtsfors", "Längd (km)": 2, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/L%C3%A5ngevi+Idrottsplats/@59.0221542,12.2082648,899m/data=!3m1!1e3!4m6!3m5!1s0x46448f9668b1ab0b:0x32c13bf5d71ffd41!8m2!3d59.0218398!4d12.2168432!16s%2Fg%2F11jwb85gy2?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "boden-3", "Ort": "Boden", "Längd (km)": 3.6, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "https://www.google.com/maps/place/Pagla+Skidstadion/@65.8404811,21.6222167,587m/data=!3m1!1e3!4m6!3m5!1s0x467f58131726d893:0xa961d57f8285944d!8m2!3d65.8404005!4d21.627617!16s%2Fg%2F12q4rt01_?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "borås-4", "Ort": "Borås", "Längd (km)": 1.1, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Bor%C3%A5s+GIF+Knekt%C3%A5s/@57.7780515,13.004743,385m/data=!3m1!1e3!4m6!3m5!1s0x465aa16954488411:0x6539b69148bcdc8b!8m2!3d57.7781857!4d13.0067331!16s%2Fg%2F11bz0199yh?entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "bruksvallarna-5", "Ort": "Bruksvallarna", "Längd (km)": 10, "Bredd (m)": 3.7, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Cafe'+Fj%C3%A4llk%C3%A5tan+Bruksvallarna/@62.6435153,12.4175815,307m/data=!3m1!1e3!4m6!3m5!1s0x466c1f65fadab037:0x5bc18adff7e4a8fc!8m2!3d62.6421853!4d12.4195053!16s%2Fg%2F11b5qwc_qd?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "dala-järna-6", "Ort": "Dala-Järna", "Längd (km)": 5.4, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=60.534294,14.449147&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=11749662802746755836"}, {"_id": "falun-7", "Ort": "Falun", "Längd (km)": 4.3, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Lugnet+asfaltbana/@60.6197196,15.6536088,327m/data=!3m1!1e3!4m6!3m5!1s0x466771885645deed:0x74228697c34e0c7d!8m2!3d60.6197924!4d15.6561023!16s%2Fg%2F11k5x2c_hg?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "filipstad-8", "Ort": "Filipstad", "Längd (km)": 3.3, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2015, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kalhyttan+Sport+%26+Fritidsarena/@59.703481,14.13299,720m/data=!3m1!1e3!4m6!3m5!1s0x465cddf299b0bf8b:0x8dcc53fb55cc5a54!8m2!3d59.7034806!4d14.1329898!16s%2Fg%2F11fflyb48l?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "gnosjö-9", "Ort": "Gnosjö", "Längd (km)": 2, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/T%C3%B6llstorpshallen/@57.36075,13.753169,770m/data=!3m1!1e3!4m6!3m5!1s0x46508e1db72c1bf9:0xae62aff242b5ef16!8m2!3d57.3607503!4d13.7531685!16s%2Fg%2F1v2pnts1?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "göteborg-10", "Ort": "Göteborg", "Längd (km)": 1.5, "Bredd (m)": 1.5, "Belysning": "Nej", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Skat%C3%A5s+motionscentrum/@57.7037482,12.0352275,361m/data=!3m1!1e3!4m6!3m5!1s0x464ff3f500000001:0xbc6c5ef678969dcc!8m2!3d57.7038122!4d12.0356398!16s%2Fg%2F11dyj9_8m?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "hedesunda-11", "Ort": "Hedesunda", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "Underhålls ej", "Maps": "https://www.google.com/maps/place/Elljussp%C3%A5ret+hedesunda/@60.4123696,16.9812719,1258m/data=!3m1!1e3!4m6!3m5!1s0x4660a581250bd3e5:0x7bba1d6d432e6a9b!8m2!3d60.4133741!4d16.9885381!16s%2Fg%2F11k7n04386?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "hudiksvall-12", "Ort": "Hudiksvall", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Hudiksvall+Skidstadion/@61.7269798,17.1506734,558m/data=!3m1!1e3!4m6!3m5!1s0x4666a7df9eb79ae7:0xa4abfccabacf7048!8m2!3d61.7271162!4d17.1505393!16s%2Fg%2F11bxdw5xz9?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "härnösand-13", "Ort": "Härnösand", "Längd (km)": 3, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Bondsj%C3%B6h%C3%B6jdens+IP/@62.642827,17.899053,1311m/data=!3m1!1e3!4m6!3m5!1s0x46649bc757f1dbd5:0xa6e4832f5db9c1c2!8m2!3d62.6428267!4d17.8990531!16s%2Fg%2F11ghsb80f2?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "häverödal-14", "Ort": "Häverödal", "Längd (km)": 3, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2021, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=60.022969,18.602933&z=15&t=h&hl=en&gl=SE&mapclient=embed&cid=1200415211204436964"}, {"_id": "högbo-15", "Ort": "Högbo", "Längd (km)": 3.1, "Bredd (m)": 3.1, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Sportcentralen/@60.669201,16.819498,349m/data=!3m1!1e3!4m6!3m5!1s0x4660ca5f83d7d797:0xd0184eb4db15317e!8m2!3d60.6692014!4d16.8194982!16s%2Fg%2F11g8nzvb2v?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "idre-fjäll-16", "Ort": "Idre fjäll", "Längd (km)": 3.3, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/797+71+Idre/@61.883573,12.833847,336m/data=!3m1!1e3!4m6!3m5!1s0x4669159e18c7cba7:0xb285411ec00c10e2!8m2!3d61.8579343!4d12.7258736!16s%2Fm%2F04gnvcs?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "junsele-17", "Ort": "Junsele", "Längd (km)": 3, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/883+71+Junsele/@63.702114,16.853988,632m/data=!3m1!1e3!4m6!3m5!1s0x467a8e026138ae25:0x732ee468dede63af!8m2!3d63.6958941!4d16.8788147!16zL20vMDl3d2N5?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "järpen-18", "Ort": "Järpen", "Längd (km)": 2, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Ishall,+F%C3%B6reningen+R%C3%B6jsmohallen/@63.347158,13.471948,640m/data=!3m1!1e3!4m6!3m5!1s0x466e14a1fd69fc13:0x24b797611b203db4!8m2!3d63.3471578!4d13.4719479!16s%2Fg%2F1hc1nd938?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kalix-19", "Ort": "Kalix", "Längd (km)": 3, "Bredd (m)": 3, "Belysning": "Nej", "Byggnations år": 2022, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kalix+Skidklubb/@65.874308,23.132156,2333m/data=!3m1!1e3!4m6!3m5!1s0x45d5772618201733:0xfa8f86df8188fe1e!8m2!3d65.8743084!4d23.1321561!16s%2Fg%2F11j2y_4mw_?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kimstad-20", "Ort": "Kimstad", "Längd (km)": 0.5, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kimstad+Skidcenter/@58.558224,15.955839,744m/data=!3m1!1e3!4m6!3m5!1s0x465941a47a06d8fd:0xd104f7a758ff71ee!8m2!3d58.5582241!4d15.9558389!16s%2Fg%2F11gxrx5lwq?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "kiruna-21", "Ort": "Kiruna", "Längd (km)": 5, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": 8.25, "Info": "", "Maps": "https://www.google.com/maps/place/Matoj%C3%A4rvi+Idrottsplats/@67.863349,20.231621,538m/data=!3m1!1e3!4m6!3m5!1s0x45d0ba7ca4e96647:0xe1be2c614bf91ca9!8m2!3d67.8633492!4d20.2316211!16s%2Fg%2F11cp7q8_l6?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "lima-22", "Ort": "Lima", "Längd (km)": 2.5, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Lima+Skidskyttestadion/@60.85144,13.403323,695m/data=!3m1!1e3!4m6!3m5!1s0x46683cb1619bc911:0x6574666c4f91091!8m2!3d60.8514395!4d13.4033233!16s%2Fg%2F11f3rbd481?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "luleå-23", "Ort": "Luleå", "Längd (km)": 4.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2023, "Betyg x/10": null, "Info": "", "Maps": "google.com/maps?ll=65.604864,22.193592&z=15&t=m&hl=sv&gl=SE&mapclient=embed&cid=5703088829470176889"}, {"_id": "lycksele-24", "Ort": "Lycksele", "Längd (km)": 5.1, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.5, "Info": "", "Maps": "https://maps.google.com/maps?ll=64.594515,18.659429&z=14&t=h&hl=en&gl=SE&mapclient=embed&cid=3720030747532891037"}, {"_id": "mora-25", "Ort": "Mora", "Längd (km)": 2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://maps.google.com/maps?ll=61.00749,14.500453&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=17618855886652411612"}, {"_id": "nässjö-26", "Ort": "Nässjö", "Längd (km)": 5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/L%C3%B6vhults+Camping/@57.6548755,14.7590871,484m/data=!3m1!1e3!4m9!3m8!1s0x465a02f308835601:0x94b695719f38a40e!5m2!4m1!1i2!8m2!3d57.6544059!4d14.7587885!16s%2Fg%2F11f0kxvmtf?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "orsa-grönklitt-27", "Ort": "Orsa Grönklitt", "Längd (km)": 4.9, "Bredd (m)": 3.5, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Orsa+Gr%C3%B6nklitt+Ski+Stadium/@61.211319,14.53424,687m/data=!3m1!1e3!4m6!3m5!1s0x4667d41873e3439b:0xf89dffdbce67ee59!8m2!3d61.2113186!4d14.5342401!16s%2Fg%2F11g6nyh2z9?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "piteå-28", "Ort": "Piteå", "Längd (km)": 2.9, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 7.25, "Info": "", "Maps": "https://www.google.com/maps/place/Lindb%C3%A4cksstadion/@65.3169546,21.2859082,466m/data=!3m1!1e3!4m6!3m5!1s0x467f3cb6d1fa72a9:0x784eddbdf507b17f!8m2!3d65.3157979!4d21.2870227!16s%2Fg%2F1hc6wgcls?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sollefteå-29", "Ort": "Sollefteå", "Längd (km)": 5.4, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Sollefte%C3%A5s+skidstadion/@63.1585307,17.2371458,471m/data=!3m1!1e3!4m6!3m5!1s0x4664d7c6d93f7b4f:0x8683ebdd739504c5!8m2!3d63.1585888!4d17.2381346!16s%2Fg%2F11fn069dg2?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "storuman-30", "Ort": "Storuman", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/923+41+Stensele/@65.0690619,17.1141909,301m/data=!3m2!1e3!4b1!4m6!3m5!1s0x4679e2ab5681f6f7:0x35ca9fe7b93297cb!8m2!3d65.0690619!4d17.1167658!16s%2Fg%2F11g62cytjh?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "storvreta-31", "Ort": "Storvreta", "Längd (km)": 3.3, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/923+41+Stensele/@65.0690619,17.1141909,301m/data=!3m2!1e3!4b1!4m6!3m5!1s0x4679e2ab5681f6f7:0x35ca9fe7b93297cb!8m2!3d65.0690619!4d17.1167658!16s%2Fg%2F11g62cytjh?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sundsvall-32", "Ort": "Sundsvall", "Längd (km)": 5.8, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 8, "Info": "", "Maps": "https://www.google.com/maps/place/S%C3%B6dra+Berget/@62.3670865,17.3108668,319m/data=!3m1!1e3!4m6!3m5!1s0x466467998dc14e01:0x682939bfa2b7bf9c!8m2!3d62.36658!4d17.3092687!16s%2Fg%2F11ngtbznzr?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "sveg-33", "Ort": "Sveg", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2020, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps?ll=62.017858,14.358006&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=4373767897990633337"}, {"_id": "sätra-34", "Ort": "Sätra", "Längd (km)": 1.5, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2018, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/S%C3%A4tra+IF+Skidstadion/@59.842604,16.4939352,336m/data=!3m1!1e3!4m6!3m5!1s0x465e6d22ab1a9ab3:0xdcce88397624bb37!8m2!3d59.8430922!4d16.4956173!16s%2Fg%2F11k6k08lqg?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "timrå-35", "Ort": "Timrå", "Längd (km)": 2.5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.75, "Info": "", "Maps": "https://www.google.com/maps?ll=62.461661,17.292588&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=16564950659784006360"}, {"_id": "torsby-36", "Ort": "Torsby", "Längd (km)": 4, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Torsby+Skidtunnel+%26+Sportcenter/@60.148136,12.993534,1420m/data=!3m1!1e3!4m6!3m5!1s0x4642e8b359284dad:0x202622d48293fb35!8m2!3d60.148136!4d12.9935344!16s%2Fg%2F1hg4rfst5?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "trollhättan-37", "Ort": "Trollhättan", "Längd (km)": 2.5, "Bredd (m)": 2.5, "Belysning": "Ja", "Byggnations år": 2025, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Trollh%C3%A4ttans+Skid+%26+Orienteringsklubb/@58.2855794,12.254328,4127m/data=!3m1!1e3!4m6!3m5!1s0x46453d023e567637:0x63c5c5b5d2663d70!8m2!3d58.292858!4d12.2705125!16s%2Fg%2F1hc0zkdl_?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "töckfors-38", "Ort": "Töckfors", "Längd (km)": 2.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Kj%C3%B8len+Sportcenter/@59.4839532,11.7487582,143m/data=!3m1!1e3!4m6!3m5!1s0x46438e0f74c13d07:0xa02a3bf39a3d5651!8m2!3d59.4848627!4d11.7473805!16s%2Fg%2F11gf5nt1rx?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "ulricehamn-39", "Ort": "Ulricehamn", "Längd (km)": 3.2, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2024, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Skidstadion+Lassalyckan+Ulricehamn/@57.7869623,13.4201689,2099m/data=!3m1!1e3!4m14!1m7!3m6!1s0x465a84dd2f1459cd:0x5cf948190e1e1e84!2sLassalyckan+Ulricehamn!8m2!3d57.7865455!4d13.4384604!16s%2Fg%2F11gc5ymtgh!3m5!1s0x465a84e807f77da7:0x8e6f58720624afa5!8m2!3d57.7851353!4d13.4371157!16s%2Fg%2F11b6mtcxdz?hl=sv&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "umeå-40", "Ort": "Umeå", "Längd (km)": null, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": 2019, "Betyg x/10": null, "Info": "", "Maps": ""}, {"_id": "vålådalen-41", "Ort": "Vålådalen", "Längd (km)": 5, "Bredd (m)": 4, "Belysning": "Ja", "Byggnations år": 2014, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/V%C3%A5l%C3%A5dalens+Fj%C3%A4llstation/@63.1486866,12.9637089,339m/data=!3m1!1e3!4m9!3m8!1s0x466e799182004977:0x47db808815a7f8b6!5m2!4m1!1i2!8m2!3d63.1486865!4d12.9664149!16s%2Fg%2F1tql3dgx?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "åsarna-42", "Ort": "Åsarna", "Längd (km)": 3.6, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 6.5, "Info": "", "Maps": "https://www.google.com/maps/place/%C3%85sarna+Ik/@62.6465519,14.3605872,631m/data=!3m1!1e3!4m17!1m10!3m9!1s0x466f11cf76233e8f:0xc3b8d2d300b77afd!2s%C3%85sarna+Skicenter!5m2!4m1!1i2!8m2!3d62.6403746!4d14.3706064!16s%2Fg%2F11cltw8wcg!3m5!1s0x466f11d2326d4b8b:0x22bc61e332c9f930!8m2!3d62.6469121!4d14.3641012!16s%2Fg%2F1hc4d396g?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "ätran-43", "Ort": "Ätran", "Längd (km)": 0.9, "Bredd (m)": 3, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/%C3%84trans+Idrottsplats/@57.1208903,12.9616863,239m/data=!3m1!1e3!4m6!3m5!1s0x46504f6aa024981f:0xfdd76b8122d93819!8m2!3d57.1210426!4d12.9607954!16s%2Fg%2F11gjhp22p1?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "örnsköldsvik-44", "Ort": "Örnsköldsvik", "Längd (km)": 7, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9, "Info": "", "Maps": "https://www.google.com/maps/place/Skyttis/@63.2952898,18.7320562,331m/data=!3m1!1e3!4m6!3m5!1s0x467b581d575606ed:0x4a4f71874a4e8a9!8m2!3d63.2952899!4d18.7347105!16s%2Fg%2F11dyk05bf?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "östersund-45", "Ort": "Östersund", "Längd (km)": 8, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": 9.75, "Info": "", "Maps": "https://www.google.com/maps?ll=63.190407,14.659041&z=16&t=h&hl=en&gl=SE&mapclient=embed&cid=8499329848599437561"}, {"_id": "överkalix-46", "Ort": "Överkalix", "Längd (km)": 5, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Storlappberget+%C3%96verkalix/@66.315708,22.78034,1146m/data=!3m1!1e3!4m6!3m5!1s0x45d5b10f9eb29a7d:0xa5242ebc647f1117!8m2!3d66.3157077!4d22.7803399!16s%2Fg%2F11llt8zn1s?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}, {"_id": "gällivare-47", "Ort": "Gällivare", "Längd (km)": 3.4, "Bredd (m)": null, "Belysning": "Ja", "Byggnations år": null, "Betyg x/10": null, "Info": "", "Maps": "https://www.google.com/maps/place/Tallbacka+IP+(konstgr%C3%A4splan)/@67.160126,20.6384119,258m/data=!3m1!1e3!4m6!3m5!1s0x45d71fe1c114cda7:0xfa334a4c3e5e2e78!8m2!3d67.1590516!4d20.6413084!16s%2Fg%2F11pbbmws86?hl=en&entry=ttu&g_ep=EgoyMDI2MDEyOC4wIKXMDSoASAFQAw%3D%3D"}];
 
     const $ = (s)=>document.querySelector(s);
 
-    function normalize(list){
-      return (list || []).map((r, i) => ({
-        _id: r._id || (String(r.Ort || r["Ort"] || "rad").toLowerCase().replace(/[^a-z0-9åäö]+/gi,'-').replace(/^-|-$/g,'') || "rad") + "-" + (i+1),
-        Ort: r.Ort ?? r["Ort"] ?? "",
+    function normRow(r, i){
+      const id = r._id || (String(r.Ort||"rad").toLowerCase().replace(/[^a-z0-9åäö]+/gi,'-').replace(/^-|-$/g,'') || "rad") + "-" + (i+1);
+      return {
+        _id: id,
+        Ort: r.Ort ?? "",
         "Längd (km)": r["Längd (km)"] ?? null,
-        "Bredd (m)": r["Bredd (m)"] ?? null,
-        "Belysning": r["Belysning"] ?? "Ja",
-        "Byggnations år": r["Byggnations år"] ?? null,
+        "Belysning": r["Belysning"] ?? "",
         "Betyg x/10": r["Betyg x/10"] ?? null,
         "Info": r["Info"] ?? "",
         "Maps": r["Maps"] ?? "",
-      }));
+      };
     }
 
-    async function tryLoadPublicJson(){
-      try {
-        const res = await fetch("rullskidbanor_public.json", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (Array.isArray(json) && json.length) DATA = normalize(json);
-      } catch {}
+    function safeNum(v){ return (v===null||v===undefined||v==="") ? null : Number(v); }
+    function fmt(v, d=1){ const n=safeNum(v); return (n===null||Number.isNaN(n)) ? "–" : n.toFixed(d); }
+
+    function ratingBand(v){
+      const n = safeNum(v);
+      if (n===null || Number.isNaN(n)) return "na";
+      if (n >= 8) return "ok";
+      if (n >= 6) return "warn";
+      return "bad";
     }
 
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    function markerColor(band){
+      const css = getComputedStyle(document.documentElement);
+      return css.getPropertyValue(band==="ok"?"--ok":band==="warn"?"--warn":band==="bad"?"--bad":"--na").trim();
     }
 
-    function fmt(v, digits=1){
-      if (v === null || v === undefined || Number.isNaN(Number(v))) return "–";
-      return Number(v).toFixed(digits);
+    function esc(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     function mapsHref(r){
       const custom = (r["Maps"] || "").trim();
-      if (custom) {
-        if (!/^https?:\/\//i.test(custom)) return "https://" + custom.replace(/^\//, "");
-        return custom;
-      }
+      if (custom) return custom;
       return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.Ort || "");
     }
 
     function extractLatLngFromMaps(url){
       if (!url) return null;
-      let u = String(url).trim();
-      if (!u) return null;
-      if (!/^https?:\/\//i.test(u)) u = "https://" + u.replace(/^\//, "");
       try {
-        const parsed = new URL(u);
-        const ll = parsed.searchParams.get("ll");
-        if (ll) {
-          const m = ll.match(/^\s*([-\.\d]+)\s*,\s*([-\.\d]+)\s*$/);
-          if (m) return [parseFloat(m[1]), parseFloat(m[2])];
-        }
-        const q = parsed.searchParams.get("query");
-        if (q) {
-          const m = q.match(/^\s*([-\.\d]+)\s*,\s*([-\.\d]+)\s*$/);
-          if (m) return [parseFloat(m[1]), parseFloat(m[2])];
-        }
+        const u = String(url);
+        const m1 = u.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (m1) return {lat: Number(m1[1]), lng: Number(m1[2])};
+        const m2 = u.match(/[?&]query=\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+        if (m2) return {lat: Number(m2[1]), lng: Number(m2[2])};
       } catch {}
-      const at = u.match(/@([-\.\d]+),([-\.\d]+),/);
-      if (at) return [parseFloat(at[1]), parseFloat(at[2])];
-      const d = u.match(/!3d([-\.\d]+)!4d([-\.\d]+)/);
-      if (d) return [parseFloat(d[1]), parseFloat(d[2])];
       return null;
     }
 
+    function loadGeoCache(){ try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || "{}") || {}; } catch { return {}; } }
+    function saveGeoCache(c){ try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(c)); } catch {} }
+
     async function geocodeOrt(ort){
-      const q = (ort || "").trim();
-      if (!q) return null;
-      const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=se&q=" + encodeURIComponent(q);
-      try {
-        const res = await fetch(url, { headers: { "Accept": "application/json" } });
-        if (!res.ok) return null;
-        const js = await res.json();
-        if (!Array.isArray(js) || !js.length) return null;
-        return [parseFloat(js[0].lat), parseFloat(js[0].lon)];
-      } catch {
-        return null;
-      }
+      const q = encodeURIComponent((ort || "").trim() + ", Sverige");
+      const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + q;
+      const res = await fetch(url, { headers: { "Accept":"application/json" } });
+      if (!res.ok) return null;
+      const js = await res.json();
+      if (!Array.isArray(js) || !js.length) return null;
+      return {lat: Number(js[0].lat), lng: Number(js[0].lon)};
     }
 
-    function setMeta(total, shown){
-      const betyg = shown.map(r => (r["Betyg x/10"]==null ? null : Number(r["Betyg x/10"]))).filter(v => v!=null && !Number.isNaN(v));
-      const avg = betyg.length ? (betyg.reduce((a,b)=>a+b,0)/betyg.length) : null;
+    let ROWS = [];
+    let map, markersLayer;
+    const markerById = new Map();
+
+    function currentFiltered(){
+      const q = ($("#q").value || "").trim().toLowerCase();
+      const minR = Number($("#minRating").value || "0");
+      const onlyLit = $("#onlyLit").checked;
+
+      return ROWS.filter(r => {
+        if (q && !String(r.Ort||"").toLowerCase().includes(q)) return false;
+        if (onlyLit && String(r["Belysning"]||"") !== "Ja") return false;
+        const b = safeNum(r["Betyg x/10"]);
+        if (b != null && !Number.isNaN(b) && b < minR) return false;
+        return true;
+      });
+    }
+
+    function updateMeta(){
+      const visible = currentFiltered().length;
       $("#meta").innerHTML = [
-        `<span class="pill">Banor: <b>${shown.length}</b> / ${total}</span>`,
-        `<span class="pill">Snittbetyg: <b>${avg==null ? "–" : avg.toFixed(2)}</b></span>`,
+        `<span class="pill">Visar <b>${visible}</b> av ${ROWS.length}</span>`,
+        `<span class="pill">Senast uppdaterad: <b>${BUILD_DATE}</b></span>`
       ].join(" ");
     }
 
-    function renderDetails(r){
-      const info = (r["Info"] || "").trim();
-      const bel = r["Belysning"] ?? "–";
+    function popupHtml(r){
       const maps = mapsHref(r);
-
-      $("#details").innerHTML = `
-        <h2>${escapeHtml(r.Ort || "(namnlös)")}</h2>
-        <div class="rowbtns">
-          <a class="btn secondary" href="${maps}" target="_blank" rel="noopener noreferrer">Öppna i Google Maps</a>
-          <a class="btn" href="list.html#${encodeURIComponent(r._id)}">Öppna i listvy</a>
+      const info = (r.Info || "").trim();
+      return `
+        <div style="max-width:360px">
+          <div style="font-size:16px; font-weight:900; margin-bottom:6px;">${esc(r.Ort || "(namnlös)")}</div>
+          <div style="font-size:12px; color:#444; margin-bottom:8px;">
+            Längd: <b>${fmt(r["Längd (km)"], 1)}</b> km ·
+            Betyg: <b>${r["Betyg x/10"]==null ? "–" : fmt(r["Betyg x/10"], 2)}</b> ·
+            Belysning: <b>${esc(r["Belysning"] || "–")}</b>
+          </div>
+          <div style="white-space:pre-wrap;">${info ? esc(info) : "<span style='color:#666'>Inga kommentarer.</span>"}</div>
+          <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="${maps}" target="_blank" rel="noopener noreferrer">Öppna i Google Maps</a>
+            <a href="list.html#${encodeURIComponent(r._id)}">Öppna i listvy</a>
+          </div>
         </div>
-
-        <div style="height:10px"></div>
-
-        <h3>Kommentarer</h3>
-        <p style="margin:0; white-space:pre-wrap">${info ? escapeHtml(info) : '<span class="muted">Inga kommentarer.</span>'}</p>
-
-        <div style="height:12px"></div>
-
-        <h3>Detaljer</h3>
-        <p class="mono" style="margin:0">
-          Längd: <b>${fmt(r["Längd (km)"], 1)}</b> km<br/>
-          Bredd: <b>${fmt(r["Bredd (m)"], 1)}</b> m<br/>
-          Belysning: <b>${escapeHtml(String(bel))}</b><br/>
-          Byggnations år: <b>${r["Byggnations år"] ?? "–"}</b><br/>
-          Betyg: <b>${r["Betyg x/10"] == null ? "–" : fmt(r["Betyg x/10"], 2)}</b>
-        </p>
       `;
     }
 
-    function clearMarkers(){
-      markerById.clear();
-      if (markersLayer) markersLayer.clearLayers();
-    }
+    async function ensureCoords(){
+      const cache = loadGeoCache();
+      const queue = [];
 
-    async function addMarkers(rows){
-      clearMarkers();
-
-      const bounds = [];
-      for (const r of rows){
-        let latlng = extractLatLngFromMaps(r["Maps"]);
-        if (!latlng) {
-          latlng = await geocodeOrt(r.Ort);
-        }
-        if (!latlng || !isFinite(latlng[0]) || !isFinite(latlng[1])) continue;
-
-        const marker = L.marker(latlng);
-        marker.on("click", ()=>{
-          renderDetails(r);
-          history.replaceState(null, "", "#"+encodeURIComponent(r._id));
-        });
-        marker.addTo(markersLayer);
-        markerById.set(r._id, marker);
-        bounds.push(latlng);
+      for (const r of ROWS) {
+        const ll = extractLatLngFromMaps(r.Maps);
+        if (ll) { r.lat=ll.lat; r.lng=ll.lng; cache[r._id]=ll; continue; }
+        if (cache[r._id]) { r.lat=cache[r._id].lat; r.lng=cache[r._id].lng; continue; }
+        if (r.Ort) queue.push(r);
       }
+      saveGeoCache(cache);
 
-      if (bounds.length) {
-        const b = L.latLngBounds(bounds);
-        MAP.fitBounds(b.pad(0.15));
+      if (!queue.length) return;
+
+      const pill = document.createElement("span");
+      pill.className="pill";
+      pill.textContent="Laddar platser…";
+      $("#meta").appendChild(pill);
+
+      let done=0;
+      for (const r of queue) {
+        try {
+          const cache2 = loadGeoCache();
+          if (cache2[r._id]) { r.lat=cache2[r._id].lat; r.lng=cache2[r._id].lng; }
+          else {
+            const got = await geocodeOrt(r.Ort);
+            if (got) { r.lat=got.lat; r.lng=got.lng; cache2[r._id]=got; saveGeoCache(cache2); }
+          }
+        } catch {}
+        done++;
+        pill.textContent = "Laddar platser… (" + done + "/" + queue.length + ")";
       }
-    }
-
-    function filteredRows(){
-      const q = ($("#q").value || "").trim().toLowerCase();
-      if (!q) return DATA;
-      return DATA.filter(r => String(r.Ort || "").toLowerCase().includes(q));
-    }
-
-    async function rerender(){
-      const rows = filteredRows();
-      setMeta(DATA.length, rows);
-      await addMarkers(rows);
-
-      const hash = decodeURIComponent((location.hash || "").replace("#",""));
-      if (hash && markerById.has(hash)) {
-        const m = markerById.get(hash);
-        const latlng = m.getLatLng();
-        MAP.setView(latlng, Math.max(MAP.getZoom(), 10), {animate:true});
-        const r = rows.find(x => x._id === hash) || DATA.find(x => x._id === hash);
-        if (r) renderDetails(r);
-      }
+      pill.remove();
     }
 
     function initMap(){
-      MAP = L.map("map", { zoomControl: true });
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(MAP);
-
-      markersLayer = L.layerGroup().addTo(MAP);
-
-      MAP.setView([62.5, 16.0], 4);
-
-      $("#openMapsAll").addEventListener("click", (e)=>{
-        e.preventDefault();
-        const rows = filteredRows();
-        const q = rows.length === 1 ? rows[0].Ort : "rullskidbana Sverige";
-        window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q), "_blank", "noopener,noreferrer");
-      });
+      map = L.map("map", { zoomControl:true, preferCanvas:true }).setView([62.0, 15.0], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
     }
 
-    (async ()=>{
-      DATA = normalize(FALLBACK_DATA);
-      await tryLoadPublicJson();
+    function openFromHash(){
+      const id = decodeURIComponent((location.hash||"").replace(/^#/, "").trim());
+      if (!id) return;
+      const m = markerById.get(id);
+      if (!m) return;
+      const ll = m.getLatLng();
+      if (!map.getBounds().pad(-0.2).contains(ll)) map.setView(ll, Math.max(map.getZoom(), 10));
+      m.openPopup();
+    }
+
+    function renderMarkers(){
+      markersLayer.clearLayers();
+      markerById.clear();
+
+      const rows = currentFiltered();
+      for (const r of rows) {
+        if (r.lat==null || r.lng==null) continue;
+        const col = markerColor(ratingBand(r["Betyg x/10"]));
+        const marker = L.circleMarker([r.lat, r.lng], { radius:8, color:col, fillColor:col, fillOpacity:0.9, weight:2 });
+        marker.bindPopup(popupHtml(r), { maxWidth: 380 });
+        marker.on("click", ()=>{
+          if (location.hash !== "#" + r._id) history.replaceState(null, "", "#" + r._id);
+        });
+        marker.addTo(markersLayer);
+        markerById.set(r._id, marker);
+      }
+      updateMeta();
+      openFromHash();
+    }
+
+    async function loadData(){
+      let raw;
+      try {
+        const res = await fetch(DATA_URL, { cache:"no-store" });
+        if (!res.ok) throw new Error("fetch failed");
+        raw = await res.json();
+      } catch {
+        raw = FALLBACK;
+      }
+      ROWS = (raw||[]).map(normRow);
 
       initMap();
-      setMeta(DATA.length, DATA);
+      renderMarkers();       // quick render if cache/maps coords exist
+      await ensureCoords();  // geocode missing
+      renderMarkers();       // final render
+    }
 
-      $("#q").addEventListener("input", ()=>{
-        window.clearTimeout(window.__t);
-        window.__t = window.setTimeout(()=>rerender(), 220);
-      });
+    $("#q").addEventListener("input", renderMarkers);
+    $("#minRating").addEventListener("change", renderMarkers);
+    $("#onlyLit").addEventListener("change", renderMarkers);
+    window.addEventListener("hashchange", openFromHash);
 
-      await rerender();
-    })();
+    $("#nearMe").addEventListener("click", ()=>{
+      if (!navigator.geolocation) return alert("Din webbläsare stödjer inte plats.");
+      $("#nearMe").disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos)=>{ map.setView([pos.coords.latitude, pos.coords.longitude], 10); $("#nearMe").disabled=false; },
+        ()=>{ alert("Kunde inte hämta plats (tillåt plats i webbläsaren)."); $("#nearMe").disabled=false; },
+        { enableHighAccuracy:true, timeout:8000 }
+      );
+    });
+
+    loadData();
   </script>
 </body>
 </html>
